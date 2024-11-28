@@ -1,2 +1,11 @@
 # Ecommerce-DataWareHouse
-Creación de una base de datos transaccional (OLTP) en combinación con un data warehouse con una dimensión lentamente cambiante de tipo 2, lo que hizo fue creación de la base de datos transaccional y base de datos de negocios, script para creación de los datos, inserción de los datos a la DB transaccional, populado de los datos al data ware house
+Creación de una base de datos transaccional (OLTP) en combinación con un data warehouse con una dimensión lentamente cambiante de tipo 2,
+  ## Pasos de proyecto:
++ Creación de base de datos transaccional
++ Creacion de base de datos de negocios (Data ware house)
+  - 
++ Script para creación de los datos para la transaccional
++ Inserción de los datos a la DB transaccional
++ Script de ETL para el proceso de populado
++ Populado de los datos desde la transaccional a la data warehouse
++ 
