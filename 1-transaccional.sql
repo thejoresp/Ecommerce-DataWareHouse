@@ -1,10 +1,10 @@
 -- 1. Crear la base de datos y las tablas
 
 -- Crear la base de datos
--- CREATE DATABASE TiendaElectronicaOnlineA;
+-- CREATE DATABASE TiendaElectronicaOnline;
 -- GO
 
-USE TiendaElectronicaOnlineA;
+USE TiendaElectronicaOnline;
 GO
 
 -- Crear la tabla Proveedores
@@ -146,10 +146,10 @@ GO
 
 -- ============================================================
 -- -- Crear la base de datos para el DATE warehouse
--- CREATE DATABASE TiendaElectronicaOnlineA_DW;
+-- CREATE DATABASE TiendaElectronicaOnline_DW;
 -- GO
 
-USE TiendaElectronicaOnlineA_DW;
+USE TiendaElectronicaOnline_DW;
 GO
 
 -- Crear la tabla DimTiempo
@@ -386,7 +386,7 @@ GO
 -- Script ETL de actualización
 
 -- Populando DimTiempo
-INSERT INTO TiendaElectronicaOnlineA_DW.dbo.DimTiempo (Fecha, Anio, Mes, NombreMes, Trimestre, NombreTrimestre, DiaSemana, NombreDiaSemana, DiaDelAnio)
+INSERT INTO TiendaElectronicaOnline_DW.dbo.DimTiempo (Fecha, Anio, Mes, NombreMes, Trimestre, NombreTrimestre, DiaSemana, NombreDiaSemana, DiaDelAnio)
 SELECT DISTINCT
     p.FechaPedido AS Fecha,
     YEAR(p.FechaPedido) AS Anio,
@@ -398,24 +398,24 @@ SELECT DISTINCT
     DATENAME(WEEKDAY, p.FechaPedido) AS NombreDiaSemana,
     DATEPART(DAYOFYEAR, p.FechaPedido) AS DiaDelAnio
 FROM
-    TiendaElectronicaOnlineA.dbo.Pedidos p
-    LEFT JOIN TiendaElectronicaOnlineA_DW.dbo.DimTiempo dt ON dt.Fecha = p.FechaPedido
+    TiendaElectronicaOnline.dbo.Pedidos p
+    LEFT JOIN TiendaElectronicaOnline_DW.dbo.DimTiempo dt ON dt.Fecha = p.FechaPedido
 WHERE dt.Fecha IS NULL;
 
 -- Populando DimProducto
-INSERT INTO TiendaElectronicaOnlineA_DW.dbo.DimProducto (ProductoID, NombreProducto, Categoria, PrecioActual)
+INSERT INTO TiendaElectronicaOnline_DW.dbo.DimProducto (ProductoID, NombreProducto, Categoria, PrecioActual)
 SELECT DISTINCT
     p.ProductoID,
     p.NombreProducto,
     p.Categoria,
     p.Precio
 FROM
-    TiendaElectronicaOnlineA.dbo.Productos p
-    LEFT JOIN TiendaElectronicaOnlineA_DW.dbo.DimProducto dp ON dp.ProductoID = p.ProductoID
+    TiendaElectronicaOnline.dbo.Productos p
+    LEFT JOIN TiendaElectronicaOnline_DW.dbo.DimProducto dp ON dp.ProductoID = p.ProductoID
 WHERE dp.ProductoID IS NULL;
 
 -- Populando DimCliente
-INSERT INTO TiendaElectronicaOnlineA_DW.dbo.DimCliente (ClienteID, NombreCompleto, CorreoElectronico, Ciudad, Direccion, Pais)
+INSERT INTO TiendaElectronicaOnline_DW.dbo.DimCliente (ClienteID, NombreCompleto, CorreoElectronico, Ciudad, Direccion, Pais)
 SELECT DISTINCT
     c.ClienteID,
     c.Nombre + ' ' + c.Apellido AS NombreCompleto,
@@ -424,8 +424,8 @@ SELECT DISTINCT
     c.Direccion,
     c.Pais
 FROM
-    TiendaElectronicaOnlineA.dbo.Clientes c
-    LEFT JOIN TiendaElectronicaOnlineA_DW.dbo.DimCliente dc ON dc.ClienteID = c.ClienteID
+    TiendaElectronicaOnline.dbo.Clientes c
+    LEFT JOIN TiendaElectronicaOnline_DW.dbo.DimCliente dc ON dc.ClienteID = c.ClienteID
 WHERE dc.ClienteID IS NULL;
 
 /*
@@ -441,7 +441,7 @@ SELECT
     CAST(p.FechaInicio AS DATE) AS FechaInicio,
     CAST(p.FechaFin AS DATE) AS FechaFin
 FROM
-    TiendaElectronicaOnlineA.dbo.Proveedores p;
+    TiendaElectronicaOnline.dbo.Proveedores p;
 
 OPEN ProveedorCursor;
 FETCH NEXT FROM ProveedorCursor INTO
@@ -486,7 +486,7 @@ GO
 
 /*
 -- Populado DimProveedor con merge, para actualizar los registros existentes y agregar nuevos (actualización incremental), segunda instancia
-MERGE INTO TiendaElectronicaOnlineA_DW.dbo.DimProveedor AS target
+MERGE INTO TiendaElectronicaOnline_DW.dbo.DimProveedor AS target
 USING (
     SELECT
         p.ProveedorID,
@@ -498,7 +498,7 @@ USING (
         CAST(p.FechaInicio AS DATE) AS FechaInicio,
         CAST(p.FechaFin AS DATE) AS FechaFin
     FROM
-        TiendaElectronicaOnlineA.dbo.Proveedores p
+        TiendaElectronicaOnline.dbo.Proveedores p
 ) AS source
 ON
     target.ProveedorSK = source.ProveedorID AND target.Activo = 1
@@ -534,7 +534,7 @@ GO
 */
 
 -- Populando DimProveedor de polulacion de primera intacia, primera carga
-INSERT INTO TiendaElectronicaOnlineA_DW.dbo.DimProveedor (ProveedorSK, NombreProveedor, Ciudad, Pais, Clasificacion, EsProveedorCertificado, FechaInicio, FechaFin, Activo)
+INSERT INTO TiendaElectronicaOnline_DW.dbo.DimProveedor (ProveedorSK, NombreProveedor, Ciudad, Pais, Clasificacion, EsProveedorCertificado, FechaInicio, FechaFin, Activo)
 SELECT DISTINCT
     p.ProveedorID,
     p.NombreProveedor,
@@ -546,30 +546,30 @@ SELECT DISTINCT
     p.FechaFin,
     CASE WHEN p.FechaFin IS NULL THEN 1 ELSE 0 END AS Activo
 FROM
---     TiendaElectronicaOnlineA.dbo.Proveedores p
---     LEFT JOIN TiendaElectronicaOnlineA_DW.dbo.DimProveedor dp ON dp.ProveedorID = p.ProveedorID
+--     TiendaElectronicaOnline.dbo.Proveedores p
+--     LEFT JOIN TiendaElectronicaOnline_DW.dbo.DimProveedor dp ON dp.ProveedorID = p.ProveedorID
 -- WHERE dp.ProveedorID IS NULL;
 
-        TiendaElectronicaOnlineA.dbo.Proveedores p
-        LEFT JOIN TiendaElectronicaOnlineA_DW.dbo.DimProveedor dp ON dp.ProveedorSK = p.ProveedorID
+        TiendaElectronicaOnline.dbo.Proveedores p
+        LEFT JOIN TiendaElectronicaOnline_DW.dbo.DimProveedor dp ON dp.ProveedorSK = p.ProveedorID
 WHERE dp.ProveedorSK IS NULL;
 
 
 
 
 -- Populando DimMoneda (cotización de dólar para conversión a pesos)
-INSERT INTO TiendaElectronicaOnlineA_DW.dbo.DimMoneda (Cotizacion, Moneda, Fecha)
+INSERT INTO TiendaElectronicaOnline_DW.dbo.DimMoneda (Cotizacion, Moneda, Fecha)
 SELECT DISTINCT
     m.Cotizacion,
     m.Moneda,
     m.Fecha
 FROM
-    TiendaElectronicaOnlineA.dbo.Moneda m
-        LEFT JOIN TiendaElectronicaOnlineA_DW.dbo.DimMoneda dm ON dm.Fecha = m.Fecha
+    TiendaElectronicaOnline.dbo.Moneda m
+        LEFT JOIN TiendaElectronicaOnline_DW.dbo.DimMoneda dm ON dm.Fecha = m.Fecha
 WHERE dm.Fecha IS NULL;
 
 -- -- Populando FactVentas
--- INSERT INTO TiendaElectronicaOnlineA_DW.dbo.FactVentas (TiempoID, ProductoID, ClienteID, ProveedorSK, PedidoID, Cantidad, PrecioUnitario, MontoTotal, Ganancia, FechaPedido, FechaEnvio, CostoEnvio, EstadoEnvio)
+-- INSERT INTO TiendaElectronicaOnline_DW.dbo.FactVentas (TiempoID, ProductoID, ClienteID, ProveedorSK, PedidoID, Cantidad, PrecioUnitario, MontoTotal, Ganancia, FechaPedido, FechaEnvio, CostoEnvio, EstadoEnvio)
 -- SELECT
 --     dt.TiempoID,
 --     dp.ProductoID,
@@ -585,21 +585,21 @@ WHERE dm.Fecha IS NULL;
 --     p.CostoEnvio,
 --     e.EstadoEnvio
 -- FROM
---     TiendaElectronicaOnlineA.dbo.Pedidos p
---     JOIN TiendaElectronicaOnlineA.dbo.DetallesPedido dped ON p.PedidoID = dped.PedidoID
---     JOIN TiendaElectronicaOnlineA.dbo.Productos prod ON dped.ProductoID = prod.ProductoID
---     LEFT JOIN TiendaElectronicaOnlineA_DW.dbo.DimTiempo dt ON dt.Fecha = p.FechaPedido
---     LEFT JOIN TiendaElectronicaOnlineA_DW.dbo.DimProducto dp ON dp.ProductoID = dped.ProductoID
---     LEFT JOIN TiendaElectronicaOnlineA_DW.dbo.DimCliente dc ON dc.ClienteID = p.ClienteID
---     LEFT JOIN TiendaElectronicaOnlineA_DW.dbo.DimProveedor dpr ON
+--     TiendaElectronicaOnline.dbo.Pedidos p
+--     JOIN TiendaElectronicaOnline.dbo.DetallesPedido dped ON p.PedidoID = dped.PedidoID
+--     JOIN TiendaElectronicaOnline.dbo.Productos prod ON dped.ProductoID = prod.ProductoID
+--     LEFT JOIN TiendaElectronicaOnline_DW.dbo.DimTiempo dt ON dt.Fecha = p.FechaPedido
+--     LEFT JOIN TiendaElectronicaOnline_DW.dbo.DimProducto dp ON dp.ProductoID = dped.ProductoID
+--     LEFT JOIN TiendaElectronicaOnline_DW.dbo.DimCliente dc ON dc.ClienteID = p.ClienteID
+--     LEFT JOIN TiendaElectronicaOnline_DW.dbo.DimProveedor dpr ON
 --         dpr.ProveedorID = prod.ProveedorID AND
 --         p.FechaPedido BETWEEN dpr.FechaInicio AND ISNULL(dpr.FechaFin, '9999-12-31')
---     LEFT JOIN TiendaElectronicaOnlineA.dbo.Envios e ON e.PedidoID = p.PedidoID;
+--     LEFT JOIN TiendaElectronicaOnline.dbo.Envios e ON e.PedidoID = p.PedidoID;
 -- GO
 
 --TRUNCATE TABLE FactVentas
 -- Populando FactVentas
-INSERT INTO TiendaElectronicaOnlineA_DW.dbo.FactVentas (TiempoID, ProductoID, ClienteID, ProveedorID, PedidoID, Cantidad, PrecioUnitario, MontoTotal, Ganancia, FechaPedido, FechaEnvio, CostoEnvio, EstadoEnvio)
+INSERT INTO TiendaElectronicaOnline_DW.dbo.FactVentas (TiempoID, ProductoID, ClienteID, ProveedorID, PedidoID, Cantidad, PrecioUnitario, MontoTotal, Ganancia, FechaPedido, FechaEnvio, CostoEnvio, EstadoEnvio)
 SELECT
     dt.TiempoID,
     dp.ProductoID,
@@ -615,16 +615,16 @@ SELECT
     p.CostoEnvio,
     e.EstadoEnvio
 FROM
-    TiendaElectronicaOnlineA.dbo.Pedidos p
-        JOIN TiendaElectronicaOnlineA.dbo.DetallesPedido dped ON p.PedidoID = dped.PedidoID
-        JOIN TiendaElectronicaOnlineA.dbo.Productos prod ON dped.ProductoID = prod.ProductoID
-        LEFT JOIN TiendaElectronicaOnlineA_DW.dbo.DimTiempo dt ON dt.Fecha = p.FechaPedido
-        LEFT JOIN TiendaElectronicaOnlineA_DW.dbo.DimProducto dp ON dp.ProductoID = dped.ProductoID
-        LEFT JOIN TiendaElectronicaOnlineA_DW.dbo.DimCliente dc ON dc.ClienteID = p.ClienteID
-        LEFT JOIN TiendaElectronicaOnlineA_DW.dbo.DimProveedor dpr ON
+    TiendaElectronicaOnline.dbo.Pedidos p
+        JOIN TiendaElectronicaOnline.dbo.DetallesPedido dped ON p.PedidoID = dped.PedidoID
+        JOIN TiendaElectronicaOnline.dbo.Productos prod ON dped.ProductoID = prod.ProductoID
+        LEFT JOIN TiendaElectronicaOnline_DW.dbo.DimTiempo dt ON dt.Fecha = p.FechaPedido
+        LEFT JOIN TiendaElectronicaOnline_DW.dbo.DimProducto dp ON dp.ProductoID = dped.ProductoID
+        LEFT JOIN TiendaElectronicaOnline_DW.dbo.DimCliente dc ON dc.ClienteID = p.ClienteID
+        LEFT JOIN TiendaElectronicaOnline_DW.dbo.DimProveedor dpr ON
         dpr.ProveedorSK = prod.ProveedorID AND
         CAST(p.FechaPedido AS DATE) BETWEEN dpr.FechaInicio AND ISNULL(dpr.FechaFin, '9999-12-31')
-        LEFT JOIN TiendaElectronicaOnlineA.dbo.Envios e ON e.PedidoID = p.PedidoID;
+        LEFT JOIN TiendaElectronicaOnline.dbo.Envios e ON e.PedidoID = p.PedidoID;
 GO
 
 
@@ -645,7 +645,7 @@ GO
 ------------------------------------------------------------------------------------------------------
 -- ============================================================
 -- Script de verificación de datos en pesos y dólares
-use TiendaElectronicaOnlineA_DW
+use TiendaElectronicaOnline_DW
 -- Ejemplo de consulta para ver los reportes en pesos y en dólares
   SELECT
        fv.VentaID,
@@ -685,7 +685,7 @@ ORDER BY FechaInicio DESC;
 
 /*
 -- Ver los registros de factventas con el id especifico
-USE TiendaElectronicaOnlineA_DW;
+USE TiendaElectronicaOnline_DW;
 GO
 
 SELECT fv.VentaID, fv.ProveedorSK, fv.ProductoID, fv.PedidoID,    fv.Cantidad,    fv.PrecioUnitario, fv.MontoTotal, fv.Ganancia, fv.FechaPedido, dp.NombreProveedor, dp.Clasificacion,
@@ -699,8 +699,8 @@ ORDER BY
     fv.FechaPedido DESC;
 
 SELECT fv.VentaID, fv.ProveedorID, dp.ProveedorID, dp.FechaInicio, dp.FechaFin, dp.ProveedorSK, dp.NombreProveedor
-FROM TiendaElectronicaOnlineA_DW.dbo.FactVentas fv
-         JOIN TiendaElectronicaOnlineA_DW.dbo.DimProveedor dp ON fv.ProveedorID = dp.ProveedorSK
+FROM TiendaElectronicaOnline_DW.dbo.FactVentas fv
+         JOIN TiendaElectronicaOnline_DW.dbo.DimProveedor dp ON fv.ProveedorID = dp.ProveedorSK
 WHERE fv.FechaPedido NOT BETWEEN dp.FechaInicio AND ISNULL(dp.FechaFin, '9999-12-31');
 
 DECLARE @nuevoproveedorID INT = 3;
@@ -717,10 +717,10 @@ UPDATE FactVentas
 SET
     ProveedorID = @nuevoproveedorID;
 */
--- use TiendaElectronicaOnlineA
+-- use TiendaElectronicaOnline
 -- select * from Productos where ProductoID = 72
 
-use TiendaElectronicaOnlineA_DW
+use TiendaElectronicaOnline_DW
 
 DECLARE @ProveedorSK INT = 2;                        -- ID del Proveedor a Actualizar
 DECLARE @NuevoNombreProveedor VARCHAR(255) = 'Jorge Ventas'; -- Nuevo Nombre
@@ -743,7 +743,7 @@ EXEC ActualizarProveedorDimHistorico
     @FechaFin = @FechaFin;
 
 SELECT *
-FROM TiendaElectronicaOnlineA_DW.dbo.DimProveedor
+FROM TiendaElectronicaOnline_DW.dbo.DimProveedor
 WHERE ProveedorSK = 2
 ORDER BY FechaInicio DESC;
 
@@ -756,8 +756,8 @@ SELECT
     dp.NombreProveedor,
     fv.FechaPedido
 FROM
-    TiendaElectronicaOnlineA_DW.dbo.FactVentas fv
-    JOIN TiendaElectronicaOnlineA_DW.dbo.DimProveedor dp ON fv.ProveedorID = dp.ProveedorID
+    TiendaElectronicaOnline_DW.dbo.FactVentas fv
+    JOIN TiendaElectronicaOnline_DW.dbo.DimProveedor dp ON fv.ProveedorID = dp.ProveedorID
 WHERE
     dp.ProveedorSK = 2
 ORDER BY
@@ -778,7 +778,7 @@ SELECT
     FechaFin,
     Activo
 FROM
-    TiendaElectronicaOnlineA_DW.dbo.DimProveedor
+    TiendaElectronicaOnline_DW.dbo.DimProveedor
 WHERE
     ProveedorSK = 2
 ORDER BY
@@ -831,8 +831,8 @@ select * from DimProveedor
 -------------------------------------------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------------------------------------------
 
--- Eliminar tablas de TiendaElectronicaOnlineA
-USE TiendaElectronicaOnlineA;
+-- Eliminar tablas de TiendaElectronicaOnline
+USE TiendaElectronicaOnline;
 GO
 
 IF OBJECT_ID('dbo.Inventario', 'U') IS NOT NULL
@@ -871,8 +871,8 @@ IF OBJECT_ID('dbo.Proveedores', 'U') IS NOT NULL
     DROP TABLE dbo.Proveedores;
 GO
 
--- Eliminar tablas de TiendaElectronicaOnlineAA_DW
-USE TiendaElectronicaOnlineA_DW;
+-- Eliminar tablas de TiendaElectronicaOnlineA_DW
+USE TiendaElectronicaOnline_DW;
 GO
 
 IF OBJECT_ID('dbo.FactVentas', 'U') IS NOT NULL
@@ -899,7 +899,7 @@ IF OBJECT_ID('dbo.DimTiempo', 'U') IS NOT NULL
     DROP TABLE dbo.DimTiempo;
 GO
 
-USE TiendaElectronicaOnlineA_DW;
+USE TiendaElectronicaOnline_DW;
 GO
 
 IF OBJECT_ID('dbo.ActualizarProveedorDimHistorico', 'P') IS NOT NULL
