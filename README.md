@@ -12,17 +12,14 @@ Creación de una base de datos transaccional (OLTP) en combinación con un data 
     - **Tabla de Envios**: EnvioID, PedidoID, FechaEntrega, Transportista, EstadoEnvio.
     - **Tabla de Devoluciones**: DevolucionID, PedidoID, ProductoID, FechaDevolucion, MotivoDevolucion, EstadoDevolucion.
     - **Tabla de Inventarios**: InventarioID, ProductoID, CantidadDisponible, FechaActualizacion.
-~~~
-Comentario: La estructuracion de las tablas para la tienda 
+> Comentario: La estructuracion de las tablas para la tienda 
 a enfoco mas en la parte de producto, ya que queria aplicar
  la demension lentamente cambiante (T2) al proveedor del 
  producto
-~~~
-~~~
-Para la creacion del DW se uso una estructura de un esquema
+
+> Para la creacion del DW se uso una estructura de un esquema
 estrella, que reprenta muy bien la solucion para la 
 creacion de un DW, simple y especifico para el analisis
-~~~
 - Creacion de base de datos de negocios (Data warehouse)
   - Estructura del DW:
     - **Tabla DimTiempo**: TiempoID, Fecha, Anio, Mes, NombreMes, Trimestre, NombreTrimestre, DiaSemana, NombreDiaSemana, DiaDelAnio.
