@@ -1,7 +1,7 @@
 # Ecommerce-DataWareHouse
 Creación de una base de datos transaccional (OLTP) en combinación con un data warehouse con una dimensión lentamente cambiante de tipo 2,
   ## Pasos de proyecto:
-- Creación de base de datos transaccional
+1- Creación de base de datos transaccional
   - Estructura de la base de datos:
     - **Tabla de Proveedores**: ProveedorID, NombreProveedor, NombreContacto, Direccion, Ciudad, CodigoPostal, Pais, Telefono, Clasificacion, EsProveedorCertificado, FechaInicio, FechaFin.
     - **Tabla de Productos**: ProductoID, NombreProducto, Categoria, Precio, Costo, ProveedorID.
@@ -20,7 +20,8 @@ a enfoco mas en la parte de producto, ya que queria aplicar
 > Para la creacion del DW se uso una estructura de un esquema
 estrella, que reprenta muy bien la solucion para la 
 creacion de un DW, simple y especifico para el analisis
-- Creacion de base de datos de negocios (Data warehouse)
+
+2- Creacion de base de datos de negocios (Data warehouse)
   - Estructura del DW:
     - **Tabla DimTiempo**: TiempoID, Fecha, Anio, Mes, NombreMes, Trimestre, NombreTrimestre, DiaSemana, NombreDiaSemana, DiaDelAnio.
     - **Tabla DimProducto**: ProductoID, NombreProducto, Categoria, PrecioActual.
@@ -28,7 +29,7 @@ creacion de un DW, simple y especifico para el analisis
     - **Tabla DimProveedor**: ProveedorID, ProveedorSK, NombreProveedor, Ciudad, Pais, Clasificacion, EsProveedorCertificado, FechaInicio, FechaFin, Activo.
     - **Tabla DimMoneda**: MonedaID, Cotizacion, Moneda, Fecha.
     - **Tabla FactVentas**: VentaID, TiempoID, ProductoID, ClienteID, ProveedorID, PedidoID, Cantidad, PrecioUnitario, MontoTotal, Ganancia, FechaPedido, FechaEnvio, CostoEnvio, EstadoEnvio.
-- Script con py para creación de los datos para la transaccional
-- Inserción de los datos a la DB transaccional
-- Script de ETL para el proceso de populado
-- Populado de los datos desde la transaccional a la data warehouse
+3- Script con py para creación de los datos para la transaccional
+4- Inserción de los datos a la DB transaccional
+5- Script de ETL para el proceso de populado
+6- Populado de los datos desde la transaccional a la data warehouse
