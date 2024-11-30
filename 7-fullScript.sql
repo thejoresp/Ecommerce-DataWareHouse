@@ -423,110 +423,6 @@ FROM
     LEFT JOIN TiendaElectronicaOnline_DW.dbo.DimCliente dc ON dc.ClienteID = c.ClienteID
 WHERE dc.ClienteID IS NULL;
 
-/*
--- Cursor para iterar sobre todos los proveedores actuales
-DECLARE ProveedorCursor CURSOR FOR
-SELECT
-    p.ProveedorID,
-    p.NombreProveedor,
-    p.Ciudad,
-    p.Pais,
-    p.Clasificacion,
-    p.EsProveedorCertificado,
-    CAST(p.FechaInicio AS DATE) AS FechaInicio,
-    CAST(p.FechaFin AS DATE) AS FechaFin
-FROM
-    TiendaElectronicaOnline.dbo.Proveedores p;
-
-OPEN ProveedorCursor;
-FETCH NEXT FROM ProveedorCursor INTO
-    @ProveedorID,
-    @NuevoNombreProveedor,
-    @NuevaCiudad,
-    @NuevoPais,
-    @NuevaClasificacion,
-    @NuevoEsProveedorCertificado,
-    @FechaInicio,
-    @FechaFin;
-
-WHILE @@FETCH_STATUS = 0
-BEGIN
-    -- Llamar al procedimiento almacenado para cada proveedor
-    EXEC ActualizarProveedorDimHistorico
-        @ProveedorID = @ProveedorID,
-        @NuevoNombreProveedor = @NuevoNombreProveedor,
-        @NuevaCiudad = @NuevaCiudad,
-        @NuevoPais = @NuevoPais,
-        @NuevaClasificacion = @NuevaClasificacion,
-        @NuevoEsProveedorCertificado = @NuevoEsProveedorCertificado,
-        @FechaInicio = @FechaInicio,
-        @FechaFin = @FechaFin;
-
-    FETCH NEXT FROM ProveedorCursor INTO
-        @ProveedorID,
-        @NuevoNombreProveedor,
-        @NuevaCiudad,
-        @NuevoPais,
-        @NuevaClasificacion,
-        @NuevoEsProveedorCertificado,
-        @FechaInicio,
-        @FechaFin;
-END
-
-CLOSE ProveedorCursor;
-DEALLOCATE ProveedorCursor;
-GO
-*/
--- aca esta la movida del error
-
-/*
--- Populado DimProveedor con merge, para actualizar los registros existentes y agregar nuevos (actualización incremental), segunda instancia
-MERGE INTO TiendaElectronicaOnline_DW.dbo.DimProveedor AS target
-USING (
-    SELECT
-        p.ProveedorID,
-        p.NombreProveedor,
-        p.Ciudad,
-        p.Pais,
-        p.Clasificacion,
-        p.EsProveedorCertificado,
-        CAST(p.FechaInicio AS DATE) AS FechaInicio,
-        CAST(p.FechaFin AS DATE) AS FechaFin
-    FROM
-        TiendaElectronicaOnline.dbo.Proveedores p
-) AS source
-ON
-    target.ProveedorSK = source.ProveedorID AND target.Activo = 1
-WHEN MATCHED AND (
-        target.NombreProveedor <> source.NombreProveedor OR
-        target.Ciudad <> source.Ciudad OR
-        target.Pais <> source.Pais OR
-        target.Clasificacion <> source.Clasificacion OR
-        target.EsProveedorCertificado <> source.EsProveedorCertificado
-    )
-    THEN
-        -- Marcar el registro existente como histórico
-        UPDATE SET
-            FechaFin = DATEADD(DAY, -1, source.FechaInicio),
-            Activo = 0
-WHEN NOT MATCHED BY TARGET
-    THEN
-        -- Insertar nueva versión activa
-        INSERT (ProveedorSK, NombreProveedor, Ciudad, Pais, Clasificacion, EsProveedorCertificado, FechaInicio, FechaFin, Activo)
-        VALUES (
-            source.ProveedorID,
-            source.NombreProveedor,
-            source.Ciudad,
-            source.Pais,
-            source.Clasificacion,
-            source.EsProveedorCertificado,
-            source.FechaInicio,
-            source.FechaFin,
-            CASE WHEN source.FechaFin IS NULL THEN 1 ELSE 0 END
-        )
-OUTPUT $action, inserted.*, deleted.*;
-GO
-*/
 
 -- Populando DimProveedor de polulacion de primera intacia, primera carga
 INSERT INTO TiendaElectronicaOnline_DW.dbo.DimProveedor (ProveedorSK, NombreProveedor, Ciudad, Pais, Clasificacion, EsProveedorCertificado, FechaInicio, FechaFin, Activo)
@@ -541,9 +437,6 @@ SELECT DISTINCT
     p.FechaFin,
     CASE WHEN p.FechaFin IS NULL THEN 1 ELSE 0 END AS Activo
 FROM
---     TiendaElectronicaOnline.dbo.Proveedores p
---     LEFT JOIN TiendaElectronicaOnline_DW.dbo.DimProveedor dp ON dp.ProveedorID = p.ProveedorID
--- WHERE dp.ProveedorID IS NULL;
 
         TiendaElectronicaOnline.dbo.Proveedores p
         LEFT JOIN TiendaElectronicaOnline_DW.dbo.DimProveedor dp ON dp.ProveedorSK = p.ProveedorID
@@ -562,35 +455,6 @@ FROM
     TiendaElectronicaOnline.dbo.Moneda m
         LEFT JOIN TiendaElectronicaOnline_DW.dbo.DimMoneda dm ON dm.Fecha = m.Fecha
 WHERE dm.Fecha IS NULL;
-
--- -- Populando FactVentas
--- INSERT INTO TiendaElectronicaOnline_DW.dbo.FactVentas (TiempoID, ProductoID, ClienteID, ProveedorSK, PedidoID, Cantidad, PrecioUnitario, MontoTotal, Ganancia, FechaPedido, FechaEnvio, CostoEnvio, EstadoEnvio)
--- SELECT
---     dt.TiempoID,
---     dp.ProductoID,
---     dc.ClienteID,
---     dpr.ProveedorSK,
---     p.PedidoID,
---     dped.Cantidad,
---     dped.PrecioUnitario,
---     dped.Cantidad * dped.PrecioUnitario AS MontoTotal,
---     (dped.Cantidad * dped.PrecioUnitario) - (dped.Cantidad * prod.Costo) AS Ganancia,
---     p.FechaPedido,
---     p.FechaEnvio,
---     p.CostoEnvio,
---     e.EstadoEnvio
--- FROM
---     TiendaElectronicaOnline.dbo.Pedidos p
---     JOIN TiendaElectronicaOnline.dbo.DetallesPedido dped ON p.PedidoID = dped.PedidoID
---     JOIN TiendaElectronicaOnline.dbo.Productos prod ON dped.ProductoID = prod.ProductoID
---     LEFT JOIN TiendaElectronicaOnline_DW.dbo.DimTiempo dt ON dt.Fecha = p.FechaPedido
---     LEFT JOIN TiendaElectronicaOnline_DW.dbo.DimProducto dp ON dp.ProductoID = dped.ProductoID
---     LEFT JOIN TiendaElectronicaOnline_DW.dbo.DimCliente dc ON dc.ClienteID = p.ClienteID
---     LEFT JOIN TiendaElectronicaOnline_DW.dbo.DimProveedor dpr ON
---         dpr.ProveedorID = prod.ProveedorID AND
---         p.FechaPedido BETWEEN dpr.FechaInicio AND ISNULL(dpr.FechaFin, '9999-12-31')
---     LEFT JOIN TiendaElectronicaOnline.dbo.Envios e ON e.PedidoID = p.PedidoID;
--- GO
 
 --TRUNCATE TABLE FactVentas
 -- Populando FactVentas
@@ -626,96 +490,31 @@ GO
 
 
 
-
-
-
-
-
-
-
-
-
-
-------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------
 -- ============================================================
 -- Script de verificación de datos en pesos y dólares
 use TiendaElectronicaOnline_DW
 -- Ejemplo de consulta para ver los reportes en pesos y en dólares
-  SELECT
-       fv.VentaID,
-       fv.Cantidad,
-       fv.PrecioUnitario AS PrecioUnitarioEnPesos,
-       fv.MontoTotal AS MontoTotalEnPesos,
-       fv.Ganancia AS GananciaEnPesos,
-       dm.Cotizacion AS TipoCambio,
-       fv.PrecioUnitario / dm.Cotizacion AS PrecioUnitarioEnDolares,
-       fv.MontoTotal / dm.Cotizacion AS MontoTotalEnDolares,
-       fv.Ganancia / dm.Cotizacion AS GananciaEnDolares,
-       fv.FechaPedido
-   FROM
-       FactVentas fv
-   JOIN DimMoneda dm ON dm.Fecha = fv.FechaPedido AND dm.Moneda = 'Dólar'
-   ORDER BY
-       fv.FechaPedido DESC;
+    SELECT
+    fv.VentaID,
+    fv.Cantidad,
+    fv.PrecioUnitario AS PrecioUnitarioEnPesos,
+    fv.MontoTotal AS MontoTotalEnPesos,
+    fv.Ganancia AS GananciaEnPesos,
+    dm.Cotizacion AS TipoCambio,
+    fv.PrecioUnitario / dm.Cotizacion AS PrecioUnitarioEnDolares,
+    fv.MontoTotal / dm.Cotizacion AS MontoTotalEnDolares,
+    fv.Ganancia / dm.Cotizacion AS GananciaEnDolares,
+    fv.FechaPedido
+    FROM
+        FactVentas fv
+    JOIN DimMoneda dm ON dm.Fecha = fv.FechaPedido AND dm.Moneda = 'Dólar'
+    ORDER BY
+        fv.FechaPedido DESC;
 
 
---------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------
---Actualizar DimProveedor usando SCD Tipo 2 cambiando su clasificación.
-
--- Datos del cambio
-
-/*
-SELECT ProveedorSK, ProveedorID,
-    NombreProveedor, Ciudad, Pais, Clasificacion, EsProveedorCertificado, FechaInicio, FechaFin, Activo FROM DimProveedor WHERE ProveedorID = 2
-ORDER BY FechaInicio DESC;
-*/
-
--- SELECT ProveedorID, ProveedorSK, Clasificacion, FechaInicio, FechaFin  FROM DimProveedor WHERE ProveedorID = 2;
---select  * from DetallesPedido Where ProductoID = 2
---Select * from FactVentas where ProveedorID = 37
---Select * from FactVentas where ProveedorID in (26,2)
---select * from Productos where ProductoID = 5
-
-/*
--- Ver los registros de factventas con el id especifico
-USE TiendaElectronicaOnline_DW;
+Use TiendaElectronicaOnline_DW
 GO
-
-SELECT fv.VentaID, fv.ProveedorSK, fv.ProductoID, fv.PedidoID,    fv.Cantidad,    fv.PrecioUnitario, fv.MontoTotal, fv.Ganancia, fv.FechaPedido, dp.NombreProveedor, dp.Clasificacion,
-    dp.FechaInicio, dp.FechaFin, dp.Activo
-FROM
-    FactVentas fv
-        JOIN DimProveedor dp ON fv.ProveedorID = dp.ProveedorID
-WHERE
-    dp.ProveedoriD = 3
-ORDER BY
-    fv.FechaPedido DESC;
-
-SELECT fv.VentaID, fv.ProveedorID, dp.ProveedorID, dp.FechaInicio, dp.FechaFin, dp.ProveedorSK, dp.NombreProveedor
-FROM TiendaElectronicaOnline_DW.dbo.FactVentas fv
-         JOIN TiendaElectronicaOnline_DW.dbo.DimProveedor dp ON fv.ProveedorID = dp.ProveedorSK
-WHERE fv.FechaPedido NOT BETWEEN dp.FechaInicio AND ISNULL(dp.FechaFin, '9999-12-31');
-
-DECLARE @nuevoproveedorID INT = 3;
-
-UPDATE dbo.Proveedores
-SET
-    NombreProveedor = 'Jorge Espinola',
-    Clasificacion = 'preferido'
-WHERE
-    ProveedorID = @nuevoproveedorID;
-GO
-
-UPDATE FactVentas
-SET
-    ProveedorID = @nuevoproveedorID;
-*/
--- use TiendaElectronicaOnline
--- select * from Productos where ProductoID = 72
-
-use TiendaElectronicaOnline_DW
 
 DECLARE @ProveedorSK INT = 2;                        -- ID del Proveedor a Actualizar
 DECLARE @NuevoNombreProveedor VARCHAR(255) = 'Jorge Ventas'; -- Nuevo Nombre
@@ -783,10 +582,6 @@ ORDER BY
 
 
 --- ============================================================
---- ============================================================
-
--------------------------------------------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------------------------------------------
 
 --Reporte de Ventas Totales en Pesos y Dólares en un Rango de Fechas
 DECLARE @FechaInicio DATE = '2024-01-01';

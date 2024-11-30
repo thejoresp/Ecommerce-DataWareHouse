@@ -1,4 +1,5 @@
 Use TiendaElectronicaOnline_DW;
+GO
 
 DECLARE @ProveedorSK INT = 2;                        -- ID del Proveedor a Actualizar
 DECLARE @NuevoNombreProveedor VARCHAR(255) = 'Jorge Ventas'; -- Nuevo Nombre
