@@ -12,8 +12,8 @@ Creación de una base de datos transaccional (OLTP) en combinación con un data 
     - Tabla de Envios
     - Tabla de Devoluciones
     - Tabla de Inventarios
-> Comentarios: La estructuracion de las tablas para la tienda a enfocarse mas en el 
-producto, ya que queria aplicar la demension lentamente cambiante al proveedor del producto
+> Comentario: La estructuracion de las tablas para la tienda a enfoco mas en la parte de
+producto, ya que queria aplicar la demension lentamente cambiante (T2) al proveedor del producto
 
 - Creacion de base de datos de negocios (Data warehouse)
   - Estructura de la base de datos:
