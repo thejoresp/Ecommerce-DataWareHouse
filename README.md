@@ -29,7 +29,10 @@ creacion de un DW, simple y especifico para el analisis
     - **Tabla DimProveedor**: ProveedorID, ProveedorSK, NombreProveedor, Ciudad, Pais, Clasificacion, EsProveedorCertificado, FechaInicio, FechaFin, Activo.
     - **Tabla DimMoneda**: MonedaID, Cotizacion, Moneda, Fecha.
  
-3- Script con py para creación de los datos para la transaccional
+3- Script con py para creación de los datos para la transaccional 
+
 4- Inserción de los datos a la DB transaccional
+
 5- Script de ETL para el proceso de populado
+
 6- Populado de los datos desde la transaccional a la data warehouse
