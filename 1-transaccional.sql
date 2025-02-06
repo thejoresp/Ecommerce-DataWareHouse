@@ -180,4 +180,3 @@ GO
 
 -- IF OBJECT_ID('dbo.Proveedores', 'U') IS NOT NULL
 --     DROP TABLE dbo.Proveedores;
--- GO
